@@ -23,25 +23,22 @@ package ru.mipt.edf;
 /**
  * This class represents the complete data records of an EDF-File.
  */
-public class EDFSignal
-{
+public class EDFSignal {
 
-        Double[] unitsInDigit;
-        short[][] digitalValues;
-        double[][] valuesInUnits;
+    Double[] unitsInDigit;
+    short[][] digitalValues;
+    double[][] valuesInUnits;
 
-        public Double[] getUnitsInDigit()
-        {
-                return unitsInDigit;
-        }
+    public Double[] getUnitsInDigit() {
+        return unitsInDigit;
+    }
 
-        public short[][] getDigitalValues()
-        {
-                return digitalValues;
-        }
+    public short[][] getDigitalValues() {
+        return digitalValues;
+    }
 
-        public double[][] getValuesInUnits()
-        {
-                return valuesInUnits;
-        }
+    public double[][] getValuesInUnits() {
+        return valuesInUnits;
+    }
+
 }
