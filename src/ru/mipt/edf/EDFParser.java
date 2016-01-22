@@ -33,6 +33,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -89,7 +90,7 @@ public class EDFParser {
 
     private void prepareBuffers(int nSamples) {
         this.nSamples = nSamples;
-        data = new float[nbchan][nSamples];
+        data = new float[nbchan][nSamples]; //data may hold fewer elements than available in buf!
 
         buf = ByteBuffer.allocateDirect(nRecords * samplesPerRecord * bytes);
         buf.order(ByteOrder.LITTLE_ENDIAN);
@@ -107,9 +108,6 @@ public class EDFParser {
         toRec = (long) Math.ceil(to / (double) header.numberOfSamples[channel]);
         nRecords = (int) (toRec - fromRec);
 
-        int increment = (samplesPerRecord - header.numberOfSamples[channel]) * bytes;
-        long startPosition = offset + (channelOffset + fromRec * samplesPerRecord) * bytes;
-
         if (this.nSamples != nSamples) {
             prepareBuffers(nSamples);
         }
@@ -125,22 +123,26 @@ public class EDFParser {
 
             // Set the start position in the file
             FileChannel ch = dataFile.getChannel();
+
+            long startPosition = offset + (channelOffset + fromRec * samplesPerRecord) * bytes;
             ch.position(startPosition);
             buf.rewind();
             ch.read(buf);
             buf.rewind();
 
-            int j = 0;
+            int[] counter = new int[nbchan];
+
+            int idx;
             for (int i = (int) fromRec; i < toRec; i++) {
                 for (int l = 0; l < nbchan; l++) {
+                    idx = (int) fromRec * header.numberOfSamples[l];
                     for (int k = 0; k < header.numberOfSamples[channel]; k++) {
-                        j = (int) ((i - fromRec) * header.numberOfSamples[l] + k);
-                        data[l][j] = (float) (buf.getShort() * signal.unitsInDigit[l]);
-                        j++;
+                        if (idx >= from && idx <= to) {
+                            data[l][counter[l]] = (float) (buf.getShort() * signal.unitsInDigit[l]);
+                            counter[l]++;
+                        }
+                        idx++;
                     }
-//                    if ((buf.position() + increment) < buf.capacity()) {
-//                        buf.position(buf.position() + increment);
-//                    }
                 }
             }
         } catch (IOException e) {
